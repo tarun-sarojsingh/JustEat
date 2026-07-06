@@ -1,0 +1,36 @@
+package com.justeat.dto;
+
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import java.math.BigDecimal;
+
+public class MenuItemRequest {
+    @NotBlank(message = "Item name is required")
+    private String name;
+    private String description;
+
+    @NotNull(message = "Price is required")
+    @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
+    private BigDecimal price;
+
+    private String category;
+    private Boolean isTodaysSpecial;
+    private Boolean isDealOfDay;
+    private Boolean isAvailable;
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public BigDecimal getPrice() { return price; }
+    public void setPrice(BigDecimal price) { this.price = price; }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
+    public Boolean getIsTodaysSpecial() { return isTodaysSpecial; }
+    public void setIsTodaysSpecial(Boolean isTodaysSpecial) { this.isTodaysSpecial = isTodaysSpecial; }
+    public Boolean getIsDealOfDay() { return isDealOfDay; }
+    public void setIsDealOfDay(Boolean isDealOfDay) { this.isDealOfDay = isDealOfDay; }
+    public Boolean getIsAvailable() { return isAvailable; }
+    public void setIsAvailable(Boolean isAvailable) { this.isAvailable = isAvailable; }
+}
