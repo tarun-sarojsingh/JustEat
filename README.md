@@ -34,7 +34,7 @@ the codebase easy to read, run, and extend.
 |---|---|
 | Frontend | React 18 (hooks, Context API), React Router, Axios, React-Toastify |
 | Backend | Spring Boot 3 (Java 21), Spring Security, Spring Data JPA / Hibernate |
-| Database | MySQL 8 (Docker) — falls back to in-memory H2 for zero-setup local dev |
+| Database | MySQL 8 (Docker) — falls back to file-based H2 for zero-setup local dev |
 | Auth | JWT (jjwt) |
 | API docs | SpringDoc OpenAPI (Swagger UI) |
 | Testing | JUnit 5 + Mockito |
@@ -101,7 +101,7 @@ Two real bugs were found and fixed after initial testing:
 
 ## Running locally (fastest — no MySQL install needed)
 
-The backend defaults to an in-memory **H2** database, so you can run it immediately:
+The backend defaults to a file-based **H2** database, so you can run it immediately and keep data across restarts:
 
 ```bash
 cd backend
@@ -130,6 +130,12 @@ This starts:
 - MySQL on `localhost:3306`
 - Backend on `localhost:8080` (using the `docker` Spring profile, connecting to MySQL)
 - Frontend on `localhost:3000`
+
+The Docker profile also seeds demo data on first startup so the UI is not empty:
+- Restaurant owner login: `owner` / `Password123!`
+- Customer login: `customer` / `Password123!`
+- Seeded restaurant: `Spice Route Kitchen`
+- Seeded menu items: `Chicken Tikka Masala`, `Paneer Wrap`, `Mango Lassi`
 
 ## Environment variables
 

@@ -3,6 +3,7 @@ package com.justeat.dto;
 import com.justeat.model.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class RegisterRequest {
@@ -15,6 +16,10 @@ public class RegisterRequest {
 
     @NotBlank(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
+    @Pattern(
+        regexp = "^(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}$",
+        message = "Password must include at least one uppercase letter, one number, and one special character"
+    )
     private String password;
 
     @NotBlank(message = "Role is required")

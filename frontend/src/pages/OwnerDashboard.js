@@ -11,7 +11,8 @@ export default function OwnerDashboard() {
   });
   const [menu, setMenu] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [itemForm, setItemForm] = useState({ name: '', description: '', price: '', category: '' });
+  const [itemForm, setItemForm] = useState({ name: '', description: '', price: '', category: '', isTodaysSpecial: false, isDealOfDay: false });
+  const [editingItem, setEditingItem] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const loadDashboard = async () => {
@@ -58,13 +59,19 @@ export default function OwnerDashboard() {
   const handleAddItem = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/menu-items', { ...itemForm, price: Number(itemForm.price), isAvailable: true });
-      toast.success('Menu item added');
-      setItemForm({ name: '', description: '', price: '', category: '' });
+      if (editingItem) {
+        await api.put(`/menu-items/${editingItem.id}`, { ...itemForm, price: Number(itemForm.price) });
+        toast.success('Menu item updated');
+        setEditingItem(null);
+      } else {
+        await api.post('/menu-items', { ...itemForm, price: Number(itemForm.price), isAvailable: true });
+        toast.success('Menu item added');
+      }
+      setItemForm({ name: '', description: '', price: '', category: '', isTodaysSpecial: false, isDealOfDay: false });
       const { data } = await api.get(`/restaurants/${restaurant.id}/menu`);
       setMenu(data);
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Could not add menu item');
+      toast.error(err.response?.data?.error || 'Could not save menu item');
     }
   };
 
@@ -178,7 +185,7 @@ export default function OwnerDashboard() {
       </section>
 
       <section className="dashboard-section">
-        <h2>Add a menu item</h2>
+        <h2>{editingItem ? 'Edit menu item' : 'Add a menu item'}</h2>
         <form className="menu-item-form" onSubmit={handleAddItem}>
           <input
             placeholder="Name"
@@ -204,9 +211,33 @@ export default function OwnerDashboard() {
             value={itemForm.description}
             onChange={(e) => setItemForm({ ...itemForm, description: e.target.value })}
           />
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={itemForm.isTodaysSpecial}
+              onChange={(e) => setItemForm({ ...itemForm, isTodaysSpecial: e.target.checked })}
+            />
+            Today's special
+          </label>
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={itemForm.isDealOfDay}
+              onChange={(e) => setItemForm({ ...itemForm, isDealOfDay: e.target.checked })}
+            />
+            Deal of the day
+          </label>
           <button type="submit" className="primary-button">
-            Add item
+            {editingItem ? 'Save changes' : 'Add item'}
           </button>
+          {editingItem && (
+            <button type="button" className="link-button" onClick={() => {
+              setEditingItem(null);
+              setItemForm({ name: '', description: '', price: '', category: '', isTodaysSpecial: false, isDealOfDay: false });
+            }}>
+              Cancel
+            </button>
+          )}
         </form>
       </section>
 
@@ -222,6 +253,19 @@ export default function OwnerDashboard() {
                   <strong>{item.name}</strong>
                   <p className="menu-item-price">£{Number(item.price).toFixed(2)}</p>
                 </div>
+                <button className="link-button" onClick={() => {
+                  setEditingItem(item);
+                  setItemForm({
+                    name: item.name,
+                    description: item.description || '',
+                    price: item.price,
+                    category: item.category || '',
+                    isTodaysSpecial: item.isTodaysSpecial || false,
+                    isDealOfDay: item.isDealOfDay || false,
+                  });
+                }}>
+                  Edit
+                </button>
                 <button className="link-button danger" onClick={() => handleDeleteItem(item.id)}>
                   Remove
                 </button>

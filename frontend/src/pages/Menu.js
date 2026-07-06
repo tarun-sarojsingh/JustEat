@@ -20,7 +20,12 @@ export default function Menu() {
         api.get(`/restaurants/${id}/menu`),
       ]);
       const found = restaurantsRes.data.find((r) => String(r.id) === id);
-      setRestaurant(found || { id: Number(id), name: 'Restaurant' });
+      if (!found) {
+        toast.error('Restaurant not found');
+        navigate('/restaurants');
+        return;
+      }
+      setRestaurant(found);
       setMenu(menuRes.data);
       setLoading(false);
     };

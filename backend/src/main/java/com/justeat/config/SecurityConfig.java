@@ -2,6 +2,7 @@ package com.justeat.config;
 
 import com.justeat.security.CustomUserDetailsService;
 import com.justeat.security.JwtAuthFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,6 +21,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -29,6 +31,13 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthFilter jwtAuthFilter;
+
+    /**
+     * Comma-separated list of allowed CORS origins.
+     * Override via CORS_ALLOWED_ORIGINS env var in production.
+     */
+    @Value("${cors.allowed-origins:http://localhost:3000}")
+    private String allowedOrigins;
 
     public SecurityConfig(CustomUserDetailsService userDetailsService, JwtAuthFilter jwtAuthFilter) {
         this.userDetailsService = userDetailsService;
@@ -56,8 +65,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // React dev server runs on port 3000; adjust for your deployed frontend origin.
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
+        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
@@ -74,14 +82,13 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                     .requestMatchers(AntPathRequestMatcher.antMatcher("/api/auth/**")).permitAll()
-                    .requestMatchers(AntPathRequestMatcher.antMatcher("/api/restaurants")).permitAll()
-                    .requestMatchers(AntPathRequestMatcher.antMatcher("/api/restaurants/*/menu")).permitAll()
                     .requestMatchers(AntPathRequestMatcher.antMatcher("/api-docs/**")).permitAll()
                     .requestMatchers(AntPathRequestMatcher.antMatcher("/swagger-ui/**")).permitAll()
                     .requestMatchers(AntPathRequestMatcher.antMatcher("/swagger-ui.html")).permitAll()
                     .requestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**")).permitAll()
                     .requestMatchers(AntPathRequestMatcher.antMatcher("/actuator/health")).permitAll()
-                    .requestMatchers(AntPathRequestMatcher.antMatcher("/api/restaurants/**")).permitAll()
+                    .requestMatchers(AntPathRequestMatcher.antMatcher("/api/restaurants")).permitAll()
+                    .requestMatchers(AntPathRequestMatcher.antMatcher("/api/restaurants/*/menu")).permitAll()
                     .requestMatchers(AntPathRequestMatcher.antMatcher("/api/restaurant/**")).hasRole("RESTAURANT_OWNER")
                     .requestMatchers(AntPathRequestMatcher.antMatcher("/api/menu-items/**")).hasRole("RESTAURANT_OWNER")
                     .requestMatchers(AntPathRequestMatcher.antMatcher("/api/orders/incoming")).hasRole("RESTAURANT_OWNER")
@@ -89,7 +96,7 @@ public class SecurityConfig {
                     .requestMatchers(AntPathRequestMatcher.antMatcher("/api/orders/**")).hasRole("CUSTOMER")
                         .anyRequest().authenticated()
                 )
-                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin())) // allow H2 console frames
+                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

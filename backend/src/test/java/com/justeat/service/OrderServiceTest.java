@@ -96,7 +96,7 @@ class OrderServiceTest {
         order.setRestaurant(restaurant);
         order.setStatus(OrderStatus.PENDING);
 
-        when(orderRepository.findById(30L)).thenReturn(Optional.of(order));
+        when(orderRepository.findByIdWithDetails(30L)).thenReturn(Optional.of(order));
         when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Order result = orderService.updateStatus(owner, 30L, OrderStatus.PREPARING);
@@ -112,7 +112,7 @@ class OrderServiceTest {
         order.setRestaurant(restaurant);
         order.setStatus(OrderStatus.READY);
 
-        when(orderRepository.findById(31L)).thenReturn(Optional.of(order));
+        when(orderRepository.findByIdWithDetails(31L)).thenReturn(Optional.of(order));
 
         assertThrows(InvalidStatusTransitionException.class,
                 () -> orderService.updateStatus(owner, 31L, OrderStatus.PREPARING));

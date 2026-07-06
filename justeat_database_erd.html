@@ -1,0 +1,102 @@
+<style>
+#erd { padding: 1rem 0; }
+#erd svg { max-width: 100%; height: auto; }
+#erd svg .row-rect-odd path, #erd svg .row-rect-odd rect,
+#erd svg .row-rect-even path, #erd svg .row-rect-even rect { stroke: none !important; }
+</style>
+<div id="erd"><p style="color:var(--color-text-secondary);font-size:13px">Loading schema…</p></div>
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+await document.fonts.ready;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: '"Anthropic Sans", sans-serif',
+  themeVariables: {
+    darkMode: dark,
+    fontSize: '13px',
+    fontFamily: '"Anthropic Sans", sans-serif',
+    lineColor: dark ? '#9c9a92' : '#73726c',
+    textColor: dark ? '#c2c0b6' : '#3d3d3a',
+  },
+});
+const diagram = `erDiagram
+  USERS ||--o{ RESTAURANTS : "owns"
+  USERS ||--o{ ORDERS : "places"
+  USERS ||--|| CUSTOMER_PREFERENCES : "has"
+  RESTAURANTS ||--o{ MENU_ITEMS : "contains"
+  RESTAURANTS ||--o{ ORDERS : "receives"
+  ORDERS ||--|{ ORDER_ITEMS : "includes"
+  MENU_ITEMS ||--o{ ORDER_ITEMS : "appears in"
+
+  USERS {
+    uuid id PK
+    string username
+    string email
+    string password_hash
+    enum role
+    timestamp created_at
+  }
+  RESTAURANTS {
+    uuid id PK
+    uuid owner_id FK
+    string name
+    string cuisine_type
+    decimal rating
+    boolean is_active
+    timestamp created_at
+  }
+  MENU_ITEMS {
+    uuid id PK
+    uuid restaurant_id FK
+    string name
+    decimal price
+    boolean is_todays_special
+    boolean is_deal_of_day
+    int order_count
+    boolean is_available
+  }
+  ORDERS {
+    uuid id PK
+    uuid customer_id FK
+    uuid restaurant_id FK
+    decimal total_price
+    enum status
+    timestamp created_at
+    timestamp updated_at
+  }
+  ORDER_ITEMS {
+    uuid id PK
+    uuid order_id FK
+    uuid menu_item_id FK
+    int quantity
+    decimal unit_price
+  }
+  CUSTOMER_PREFERENCES {
+    uuid id PK
+    uuid customer_id FK
+    json preferred_cuisines
+    json dietary_restrictions
+    timestamp updated_at
+  }`;
+try {
+  const { svg } = await mermaid.render('erd-svg', diagram);
+  document.getElementById('erd').innerHTML = svg;
+  document.querySelectorAll('#erd svg .node').forEach(node => {
+    const fp = node.querySelector('path[d]');
+    if (!fp) return;
+    const nums = fp.getAttribute('d').match(/-?[\d.]+/g)?.map(Number);
+    if (!nums || nums.length < 8) return;
+    const xs = [nums[0],nums[2],nums[4],nums[6]], ys = [nums[1],nums[3],nums[5],nums[7]];
+    const x=Math.min(...xs),y=Math.min(...ys),w=Math.max(...xs)-x,h=Math.max(...ys)-y;
+    const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    r.setAttribute('x',x); r.setAttribute('y',y); r.setAttribute('width',w); r.setAttribute('height',h); r.setAttribute('rx','8');
+    for (const a of ['fill','stroke','stroke-width','class','style']) if (fp.hasAttribute(a)) r.setAttribute(a,fp.getAttribute(a));
+    fp.replaceWith(r);
+  });
+  document.querySelectorAll('#erd svg .row-rect-odd path, #erd svg .row-rect-even path').forEach(p=>p.setAttribute('stroke','none'));
+} catch(e) {
+  document.getElementById('erd').innerHTML = '<p style="color:var(--color-text-secondary);font-size:13px">ERD could not render in this environment. See schema below.</p>';
+}
+</script>
